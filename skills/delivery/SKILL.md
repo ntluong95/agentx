@@ -211,8 +211,20 @@ what you tried, and what the options are. Do not pick one.
 repository Mermaid flowchart. They do not dispatch workers or mutate Orca.
 Arrows are dependency edges. Same-file `%%@agentx { ... }` JSON comments carry
 policy metadata. The compiler emits a deterministic manifest and digest that
-can be approved before a later Orca materialization step. Existing delivery
-runs do not use graph mode unless a human explicitly chooses it.
+can be approved before Orca materialization.
+
+`scripts/agentx materialize-graph --graph <file> --journal <file> --orca <abs>`
+turns that manifest into a planned ledger or, without `--dry-run`, an Orca Run,
+Tasks, and declared gates. The journal path must sit under a private directory;
+AgentX records deterministic request ids before each mutation and recovers lost
+responses through Orca `request-show`. The Orca executable must be a trusted
+absolute path outside the repository. Existing delivery runs do not use graph
+mode unless a human explicitly chooses it.
+
+`probe/run-orchestration-probes.js` contains live provider probes and recovery scenario initializers.
+It calls real Orca commands and creates runs, so it intentionally refuses to
+start unless the caller passes `--approve-live` in a disposable or approved
+environment. Scenario-specific assertions still follow the phase plan and live Orca receipts.
 
 ## Implementation
 

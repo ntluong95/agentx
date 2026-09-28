@@ -9,6 +9,8 @@ const path = require("path");
 const { compileGraph } = require("../lib/graph-compiler");
 const { parseMermaid } = require("../lib/graph-parser");
 const { validateGraph } = require("../lib/graph-validator");
+const { OrcaAdapter } = require("../lib/orca-cli-adapter");
+const { materialize } = require("../lib/materializer");
 
 const ACK_S = Number(process.env.AGENTX_ACK_S || 60);
 const POLL_S = Number(process.env.AGENTX_POLL_S || 15);
@@ -54,12 +56,18 @@ function flags(argv) {
   const f = {};
   for (let i = 0; i < argv.length; i++) {
     if (argv[i].startsWith("--")) {
+      const raw = argv[i].slice(2);
+      const eq = raw.indexOf("=");
+      if (eq >= 0) {
+        f[raw.slice(0, eq)] = raw.slice(eq + 1);
+        continue;
+      }
       const n = argv[i + 1];
       if (n != null && !String(n).startsWith("--")) {
-        f[argv[i].slice(2)] = n;
+        f[raw] = n;
         i++;
       } else {
-        f[argv[i].slice(2)] = true;
+        f[raw] = true;
       }
     }
   }
@@ -784,6 +792,33 @@ function compileGraphCmd(f) {
   out({ ok: true, digest: compiled.digest, manifest: compiled.manifest }, 0);
 }
 
+function parseBool(value, name) {
+  if (value == null || value === false) return false;
+  if (value === true) return true;
+  const v = String(value).toLowerCase();
+  if (["true", "1", "yes", "on"].includes(v)) return true;
+  if (["false", "0", "no", "off"].includes(v)) return false;
+  throw new Error("invalid boolean for --" + name + ": " + value);
+}
+
+function materializeGraphCmd(f) {
+  let compiled;
+  try {
+    compiled = compileGraph(readGraph(f.graph), { profile: f.profile });
+    const dryRun = parseBool(f["dry-run"], "dry-run");
+    if (!path.isAbsolute(f.orca)) throw new Error("--orca must be an absolute path");
+    const adapter = dryRun ? null : new OrcaAdapter(f.orca, { repoRoot: findRepositoryRoot() });
+    const result = materialize(compiled, adapter, path.resolve(f.journal), {
+      nonce: f.nonce,
+      objective: f.objective,
+      dryRun,
+    });
+    out({ ok: true, digest: compiled.digest, journal: path.resolve(f.journal), state: result.state, ids: result.ids, ledger: result.ledger });
+  } catch (e) {
+    out({ ok: false, errors: e.errors || [e.message || String(e)] }, 1);
+  }
+}
+
 const COMMANDS = {
   preflight: { required: [["repo", "PATH"], ["run", "RUN"]], optional: [] },
   dispatch: {
@@ -829,6 +864,10 @@ const COMMANDS = {
     required: [["graph", "FILE"]],
     optional: [["profile", "NAME"]],
   },
+  "materialize-graph": {
+    required: [["graph", "FILE"], ["journal", "FILE"], ["orca", "ABS"]],
+    optional: [["profile", "NAME"], ["nonce", "TEXT"], ["objective", "TEXT"], ["dry-run", "BOOL"]],
+  },
 };
 
 function usageLine(name) {
@@ -854,6 +893,7 @@ const table = {
   log: logCmd,
   "validate-graph": validateGraphCmd,
   "compile-graph": compileGraphCmd,
+  "materialize-graph": materializeGraphCmd,
 };
 if (!cmd) {
   printIdentity();
@@ -871,6 +911,13 @@ if (f.help === true) {
     console.log(usageLine(cmd));
     process.exit(0);
   }
+}
+const known = new Set(COMMANDS[cmd].required.concat(COMMANDS[cmd].optional).map(([k]) => k).concat(["help"]));
+const unknown = Object.keys(f).filter((k) => !known.has(k));
+if (unknown.length) {
+  console.log("unknown " + unknown.map((k) => "--" + k).join(", "));
+  console.log(usageLine(cmd));
+  process.exit(2);
 }
 const missing = COMMANDS[cmd].required.filter(([k]) => !f[k]).map(([k]) => "--" + k);
 if (missing.length) {

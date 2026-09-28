@@ -6,8 +6,24 @@ const crypto = require("crypto");
 const { stringify } = require("./stable-json");
 
 function ensurePrivateDir(dir) {
-  fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
-  fs.chmodSync(dir, 0o700);
+  let existed = true;
+  try {
+    const st = fs.statSync(dir);
+    if (!st.isDirectory()) throw new Error(dir + " is not a directory");
+  } catch (e) {
+    if (e && e.code !== "ENOENT") throw e;
+    existed = false;
+    fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+  }
+  const st = fs.statSync(dir);
+  const mode = st.mode & 0o777;
+  if (!existed) {
+    fs.chmodSync(dir, 0o700);
+    return;
+  }
+  if ((mode & 0o077) !== 0) {
+    throw new Error("journal directory must be private (0700): " + dir);
+  }
 }
 
 function writeJournal(file, record) {
@@ -37,6 +53,10 @@ function writeJournal(file, record) {
 }
 
 function readJournal(file) {
+  ensurePrivateDir(path.dirname(file));
+  const st = fs.lstatSync(file);
+  if (st.isSymbolicLink()) throw new Error("journal must not be a symlink");
+  if ((st.mode & 0o077) !== 0) throw new Error("journal file must be private (0600): " + file);
   const payload = JSON.parse(fs.readFileSync(file, "utf8"));
   const actual = payload.checksum;
   const expected = checksum(Object.assign({}, payload, { checksum: undefined }));

@@ -26,23 +26,47 @@ function callOrca(bin, args, options) {
   return JSON.parse(out || "{}");
 }
 
+class OrcaAdapter {
+  constructor(bin, options) {
+    this.bin = bin;
+    this.options = options || {};
+  }
+  call(args) { return callOrca(this.bin, args, this.options); }
+  requestShow(requestId) { return this.call(["orchestration", "request-show", "--request", requestId]); }
+  runCreate(objective, requestId) {
+    return this.call(["orchestration", "run-create", "--objective", objective, "--retry-request", requestId]);
+  }
+  taskCreate(runId, task, depTaskIds, requestId) {
+    const args = ["orchestration", "task-create", "--run", runId, "--task-title", task.title || task.id, "--spec", taskSpec(task), "--retry-request", requestId];
+    if (depTaskIds.length) args.push("--deps", JSON.stringify(depTaskIds));
+    return this.call(args);
+  }
+  gateCreate(taskId, question, options, requestId) {
+    const args = ["orchestration", "gate-create", "--task", taskId, "--question", question, "--retry-request", requestId];
+    if (options) args.push("--options", JSON.stringify(options));
+    return this.call(args);
+  }
+  gateResolve(gateId, resolution, requestId) {
+    return this.call(["orchestration", "gate-resolve", "--id", gateId, "--resolution", resolution, "--retry-request", requestId]);
+  }
+  taskUpdate(runId, taskId, status, result, requestId) {
+    const args = ["orchestration", "task-update", "--run", runId, "--id", taskId, "--status", status, "--retry-request", requestId];
+    if (result) args.push("--result", JSON.stringify(result));
+    return this.call(args);
+  }
+}
+
+function taskSpec(task) {
+  return ["AgentX task: " + task.id, "Title: " + (task.title || task.id), "Policy: " + JSON.stringify(task.policy || {})].join("\n");
+}
+
 function minimalEnvironment(extra) {
   const runtime = process["env"];
-  const env = {
-    HOME: runtime.HOME,
-    LANG: runtime.LANG || "C.UTF-8",
-    LC_ALL: runtime.LC_ALL || "C.UTF-8",
-    PATH: "/usr/bin:/bin:/usr/sbin:/sbin",
-  };
-  for (const [key, value] of Object.entries(extra || {})) {
-    if (!allowedExtraEnvironmentKey(key)) continue;
-    env[key] = String(value);
-  }
+  const env = { HOME: runtime.HOME, LANG: runtime.LANG || "C.UTF-8", LC_ALL: runtime.LC_ALL || "C.UTF-8", PATH: "/usr/bin:/bin:/usr/sbin:/sbin" };
+  for (const [key, value] of Object.entries(extra || {})) if (allowedExtraEnvironmentKey(key)) env[key] = String(value);
   return env;
 }
 
-function allowedExtraEnvironmentKey(key) {
-  return /^(AGENTX_|ORCA_)[A-Za-z0-9_]*$/.test(key);
-}
+function allowedExtraEnvironmentKey(key) { return /^(AGENTX_|ORCA_)[A-Za-z0-9_]*$/.test(key); }
 
-module.exports = { assertTrustedOrca, callOrca, minimalEnvironment };
+module.exports = { OrcaAdapter, assertTrustedOrca, callOrca, minimalEnvironment, taskSpec };

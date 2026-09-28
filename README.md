@@ -214,11 +214,35 @@ skills/delivery/scripts/agentx validate-graph --graph path/to/workflow.mmd
 skills/delivery/scripts/agentx compile-graph --graph path/to/workflow.mmd
 ```
 
+It can also prepare or materialize that manifest through Orca. A dry run writes
+the deterministic operation ledger and performs no Orca mutation:
+
+```bash
+mkdir -m 700 .agentx-journal
+skills/delivery/scripts/agentx materialize-graph \
+  --graph path/to/workflow.mmd \
+  --journal .agentx-journal/workflow.json \
+  --orca /absolute/path/to/orca \
+  --dry-run
+```
+
+Omit `--dry-run` only in a disposable or approved environment. The journal
+directory must already be private (`0700`) or be created by AgentX; AgentX
+records deterministic Orca request ids before each mutation and recovers lost
+responses through `request-show`.
+
 The graph mode is opt-in. Mermaid arrows are task dependencies. Same-file
 `%%@agentx { ... }` JSON comments carry policy such as agent, workspace,
-fallback and artifact metadata. The compiled manifest is policy input for a
-future Orca materialization step; existing `agentx:delivery` behavior is
+fallback and artifact metadata. Existing `agentx:delivery` behavior is
 unchanged.
+
+Live provider probes and recovery scenario initializers call real Orca commands and create live runs,
+so they refuse to start unless `--approve-live` is supplied:
+
+```bash
+node probe/run-orchestration-probes.js --provider codex --approve-live
+node probe/run-orchestration-probes.js --scenario crash-recovery --approve-live
+```
 
 Control loads `orca skills get orchestration` and follows that supervised
 loop. `agentx preflight` runs in setup, and again after `NO_ACK`. After

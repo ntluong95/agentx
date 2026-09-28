@@ -59,10 +59,17 @@ not start workers, create Orca runs, or change existing `delivery` behavior.
 
 The graph contract foundation can be reviewed before runtime materialization.
 This slice covers topology, strict metadata validation, deterministic manifests,
-a protected journal primitive and an argv-safe Orca adapter primitive. It does
-not yet implement routing/hierarchy execution, full artifact/outcome/provider
-schemas, approval receipts, Orca task creation, fallback attempts or live
-recovery; those remain future layers with their own evidence gates.
+a protected journal primitive and an argv-safe Orca adapter primitive. Runtime
+materialization now exists as an explicit helper that pre-journals deterministic
+request ids, creates or recovers the Orca Run, Tasks, and declared gates, and
+uses `request-show` to avoid duplicate mutations. Pure coordinator helpers cover
+stable ready selection, gate requirements, artifact validation, brokered message
+policy, descendant blocking, and exact-tuple fallback decisions.
+
+Live provider probes and crash, gate, and rollback scenario initializers remain gated because they mutate
+real Orca resources and depend on provider accounts and disposable workspaces.
+They are available through `probe/run-orchestration-probes.js` and require
+`--approve-live`; scenario-specific assertions still need live receipt execution before release claims are made.
 
 ### 2026-09-27 — OMP is a supported harness, and its model pin travels in the spec
 
