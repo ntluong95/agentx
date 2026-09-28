@@ -1,7 +1,7 @@
-# Contributing to Dely
+# Contributing to AgentX
 
-Thanks for your interest in improving Dely. This guide covers the normal,
-external contribution path. You do **not** need Dely or Orca installed to
+Thanks for your interest in improving AgentX. This guide covers the normal,
+external contribution path. You do **not** need AgentX or Orca installed to
 contribute here — a standard GitHub fork and pull request is enough.
 
 ## Before you start
@@ -34,7 +34,7 @@ issue first — a pull request is fine.
 ## Decisions
 
 Durable design decisions and their rationale live in `docs/decisions.md`.
-Maintainers own recording decisions there as part of Dely's own delivery
+Maintainers own recording decisions there as part of AgentX's own delivery
 process — you don't need to write a decision entry yourself, but it helps to
 say in your pull request description what you expect the durable outcome to
 be, so a maintainer can reconcile it.
@@ -44,6 +44,6 @@ be, so a maintainer can reconcile it.
 A maintainer will review your pull request, re-run the closure gates, and may
 ask for changes. Changes to what a worker launch does are also checked against
 `probe/checklist.md`, which is run live before a release rather than on a pull
-request. Because Dely currently has a solo maintainer, merges happen once the
+request. Because AgentX currently has a solo maintainer, merges happen once the
 gates are green and review feedback is addressed — an approving review from a
 second maintainer is not required to merge.

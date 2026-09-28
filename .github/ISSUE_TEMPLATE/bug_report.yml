@@ -1,5 +1,5 @@
 name: Bug report
-description: Report something in Dely that doesn't work as documented
+description: Report something in AgentX that doesn't work as documented
 title: "[Bug]: "
 labels:
   - bug
@@ -31,7 +31,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: Dely version
+      label: AgentX version
       description: The version from `.claude-plugin/plugin.json`, or the commit/branch you're on.
     validations:
       required: true
@@ -40,13 +40,14 @@ body:
     attributes:
       label: Harness
       description: >-
-        Deferred harnesses are not supported in the current release. Dely keeps
+        Deferred harnesses are not supported in the current release. AgentX keeps
         their measured launch mechanics, but a report against one may be closed
         as deferred rather than fixed.
       options:
         - Claude Code
         - Codex CLI
         - Cursor Agent CLI
+        - OMP
         - Grok Build (deferred)
         - Antigravity CLI (deferred)
         - Kiro CLI (deferred)

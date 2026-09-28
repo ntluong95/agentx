@@ -1,4 +1,4 @@
 {
-  "name": "dely",
-  "description": "An automation-first, Orca-supervised delivery protocol for coding agents."
+  "name": "agentx",
+  "description": "A general multi-agent orchestration plugin for Orca ADE."
 }

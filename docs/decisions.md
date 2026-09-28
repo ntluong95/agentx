@@ -3,11 +3,66 @@
 What has been settled, what is still open, and what was rejected and why.
 Rationale is kept because the reasons are the reusable part.
 
-Last updated 2026-09-27.
+Last updated 2026-09-29.
 
 ---
 
 ## Settled
+
+### 2026-09-28 — The plugin is rebranded as AgentX
+
+#### Context
+
+The orchestration work changes the product from a delivery-only helper into a
+general multi-agent orchestration layer over Orca ADE. The old package name no
+longer describes the product direction.
+
+#### Decision
+
+The active plugin identity is AgentX. Package manifests, marketplace metadata,
+current user-facing docs, helper command names, managed block markers, Mermaid
+policy directives, maintenance log path, and the OMP model pin line use
+`agentx` / `AgentX`.
+
+The delivery and setup skill names remain unchanged for compatibility with the
+existing skill contract. Historical decision records may continue to mention
+the previous name when describing past measurements.
+
+#### Consequences
+
+New installs use the `agentx` plugin identity and invoke `agentx:delivery` or
+`agentx:setup`. Repository graph files use `%%@agentx` directives. The helper
+is `skills/delivery/scripts/agentx`.
+
+The canonical public Git repository URL is `https://github.com/ntluong95/agentx.git`. The old upstream URL remains historical provenance only and must not be used as the active AgentX install target. Public release is blocked until that repository URL is reachable and verified.
+
+### 2026-09-28 — Mermaid graph mode starts as a pure contract compiler
+
+#### Context
+
+The next orchestration layer needs repository-owned topology without replacing
+Orca's runtime. A Mermaid flowchart file is readable in review and can live
+beside project code, but AgentX must not treat Mermaid rendering as executable
+authority.
+
+#### Decision
+
+AgentX adds pure `validate-graph` and `compile-graph` helper commands. They parse
+a strict Mermaid flowchart subset, attach closed-schema `%%@agentx { ... }` JSON
+comments as policy metadata, reject cycles, duplicate dependencies, conflicting
+node declarations, disconnected nodes, unknown policy keys and broad fallback
+tuples, and emit a stable manifest digest. Graph files are resolved under the
+Git repository root, not the caller's current subdirectory. These commands do
+not start workers, create Orca runs, or change existing `delivery` behavior.
+
+#### Consequences
+
+The graph contract foundation can be reviewed before runtime materialization.
+This slice covers topology, strict metadata validation, deterministic manifests,
+a protected journal primitive and an argv-safe Orca adapter primitive. It does
+not yet implement routing/hierarchy execution, full artifact/outcome/provider
+schemas, approval receipts, Orca task creation, fallback attempts or live
+recovery; those remain future layers with their own evidence gates.
 
 ### 2026-09-27 — OMP is a supported harness, and its model pin travels in the spec
 

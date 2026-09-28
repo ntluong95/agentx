@@ -1,6 +1,6 @@
 # Live checklist
 
-This replaces the structural suite that Dely deleted in 0.19.0. A structural
+This replaces the structural suite that AgentX deleted in 0.19.0. A structural
 suite told us the files had the shape we last agreed on. It never told us a
 worker started, acknowledged, stalled, died, or hit a dialog. Everything that
 actually broke in the 0.18.0 series was found by running the real thing, so
@@ -10,7 +10,7 @@ A separate agent session runs this before a release, against a candidate
 installed for real. A human is needed for the first trust of each probe
 repository, and otherwise only when a row goes wrong.
 
-Dely itself never answers a harness dialog. `trust.sh` in this directory does,
+AgentX itself never answers a harness dialog. `trust.sh` in this directory does,
 because a probe has to stand in for the human somewhere, and it is not part of
 the shipped skill. No skill references this directory.
 
@@ -20,7 +20,7 @@ the shipped skill. No skill references this directory.
 - Orca running, with orchestration enabled;
 - Claude Code, Codex CLI and Cursor Agent CLI installed and signed in;
 - OMP installed;
-- `~/dely-probe/` writable. Both scripts here refuse every path outside it.
+- `~/agentx-probe/` writable. Both scripts here refuse every path outside it.
 
 Record the Orca version. A row that passed on one Orca build is not evidence
 about the next one: rows 1, 4 and 5 are rerun after every Orca upgrade,
@@ -37,7 +37,7 @@ and check what actually landed:
 
 ```bash
 sha=<candidate SHA>
-snap=~/dely-probe/.snap-$sha
+snap=~/agentx-probe/.snap-$sha
 rm -rf "$snap" && mkdir -p "$snap"
 git -C <checkout> archive "$sha" | tar -x -C "$snap"
 ```
@@ -56,8 +56,8 @@ on the Claude install; confirm that rather than assuming it. It only holds once
 every older Cursor copy is gone or already matches the snapshot hash:
 
 ```bash
-find ~/.cursor/plugins/cache/dely \
-     ~/.cursor/plugins/marketplaces/github.com/hieuphung97/dely \
+find ~/.cursor/plugins/cache/agentx \
+     ~/.cursor/plugins/marketplaces/github.com/hieuphung97/agentx \
      -name SKILL.md -path '*delivery*' -exec shasum -a 256 {} + 2>/dev/null
 ```
 
@@ -76,12 +76,12 @@ omp skill list --json
 
 Ask OMP what it resolved. `omp skill list --json` must give `delivery` and
 `setup` with `source` `omp-plugins:user` and `filePath` under the linked
-`dely` package. Then SHA-256 of those resolved `SKILL.md` files, of
-`scripts/dely.js` next to `delivery`, and of `omp/dely-pin.ts` at the
+`agentx` package. Then SHA-256 of those resolved `SKILL.md` files, of
+`scripts/agentx.js` next to `delivery`, and of `omp/agentx-pin.ts` at the
 linked package must equal the snapshot's:
 
 ```bash
-omp_path=$(omp plugin list --json | jq -er '.npm[] | select(.name=="dely") | .path')
+omp_path=$(omp plugin list --json | jq -er '.npm[] | select(.name=="agentx") | .path')
 skills_json=$(omp skill list --json)
 delivery_path=$(jq -er --arg p "$omp_path" '
   [.skills[] | select(.name=="delivery")][0]
@@ -100,17 +100,17 @@ test -n "$omp_path" && test -n "$delivery_path" && test -n "$setup_path" \
        = "$(shasum -a 256 "$delivery_path" | awk '{print $1}')" \
   && test "$(shasum -a 256 "$snap/skills/setup/SKILL.md" | awk '{print $1}')" \
        = "$(shasum -a 256 "$setup_path" | awk '{print $1}')" \
-  && test "$(shasum -a 256 "$snap/skills/delivery/scripts/dely.js" | awk '{print $1}')" \
-       = "$(shasum -a 256 "$(dirname "$delivery_path")/scripts/dely.js" | awk '{print $1}')" \
-  && test "$(shasum -a 256 "$snap/omp/dely-pin.ts" | awk '{print $1}')" \
-       = "$(shasum -a 256 "$omp_path/omp/dely-pin.ts" | awk '{print $1}')"
+  && test "$(shasum -a 256 "$snap/skills/delivery/scripts/agentx.js" | awk '{print $1}')" \
+       = "$(shasum -a 256 "$(dirname "$delivery_path")/scripts/agentx.js" | awk '{print $1}')" \
+  && test "$(shasum -a 256 "$snap/omp/agentx-pin.ts" | awk '{print $1}')" \
+       = "$(shasum -a 256 "$omp_path/omp/agentx-pin.ts" | awk '{print $1}')"
 ```
 
 A missing `omp_path`, a `jq` failure, a `source` other than
 `omp-plugins:user`, or a `filePath` outside the linked package is a fail:
 OMP resolved another copy (a project skill, a marketplace install, or a
 wrong `omp.skills` path), not the snapshot. A hash mismatch on
-`SKILL.md`, `dely.js`, or `omp/dely-pin.ts` is a fail: the linked tree is
+`SKILL.md`, `agentx.js`, or `omp/agentx-pin.ts` is a fail: the linked tree is
 not the snapshot, or the extension was altered. Comparing only a symlink
 to `$snap` with `$snap` itself is not this check. Remove the OMP install
 in Step 13.
@@ -123,12 +123,12 @@ find ~/.claude/plugins ~/.claude/skills ~/.agents/skills ~/.codex ~/.cursor \
   -name SKILL.md -path '*delivery*' -exec shasum -a 256 {} +
 ```
 
-`dely` with no arguments now prints the version, SHA and sha256 of
+`agentx` with no arguments now prints the version, SHA and sha256 of
 `SKILL.md`, so a candidate can identify itself from inside whichever copy
 actually ran — a stronger check than hashing paths from outside.
 
 Include the marketplace source directory, not only the plugin cache. A Claude
-Control was observed running `scripts/dely` straight out of the marketplace
+Control was observed running `scripts/agentx` straight out of the marketplace
 path it was added from, so a cache that matches proves nothing on its own.
 
 Every hash must match the snapshot. A copy with a different hash — including a
@@ -147,7 +147,7 @@ probe/mkrepo.sh r2 "Codex CLI" <slug> <effort> "Cursor Agent CLI" <slug> default
 probe/mkrepo.sh r3 "Cursor Agent CLI" <slug> default "Claude Code" claude-opus-5 medium
 ```
 
-The paths are fixed at `~/dely-probe/r1`, `r2` and `r3` so that a harness trust
+The paths are fixed at `~/agentx-probe/r1`, `r2` and `r3` so that a harness trust
 entry, which is keyed on the path, survives a rebuild. The first run needs a
 human to trust each harness at each path once; later runs need none. Take the
 model slugs from the harness's own discovery command, not from this file.
@@ -157,12 +157,12 @@ model slugs from the harness's own discovery command, not from this file.
 For each repository, launch a Control and give it the delivery:
 
 ```bash
-orca terminal create --worktree path:~/dely-probe/rN \
+orca terminal create --worktree path:~/agentx-probe/rN \
   --command "<binary> <permission default>"
 ```
 
 Wait for the harness to be idle, then send the Control prompt: use
-`dely:delivery` for the change described in `REQUEST.md`; the design contract
+`agentx:delivery` for the change described in `REQUEST.md`; the design contract
 is pre-approved as Bounded within `REQUEST.md`; stop only where the skill
 requires a human.
 
@@ -183,7 +183,7 @@ relative to the dispatch — from `token_usage_record` lines in a Codex rollout
 under `~/.codex/sessions`, from assistant messages with `usage` in a Claude
 session under `~/.claude/projects`, and by counting assistant records in a
 Cursor agent transcript (Cursor stores no token counts locally); and whether
-Control read `scripts/dely.js`.
+Control read `scripts/agentx.js`.
 
 **Pass:** the branch is on the remote, the review disposition is `ACCEPT`, and
 no human acted. For the row whose Control wakes by `waker`, every `wait_bg`
@@ -194,18 +194,18 @@ event before its `notify`, and the Run's log has no `error` event. A
 an `error` event, so a Run that needed that recovery does not pass row 3
 and is reported as such rather than as a waker failure. Presence
 of `wait_bg` and `notify` is not enough: on `e874990` a Codex Control launched
-`dely wait-bg` inside a new Orca terminal, the waiter watched the wrong
+`agentx wait-bg` inside a new Orca terminal, the waiter watched the wrong
 terminal and failed after 1 s with "no longer bound", and the log still
 carried `wait_bg` and `notify`, so the old wording passed it. Without the
 events at all the row passed without exercising the path it exists to test:
-on `82aa354` a Codex Control reached `ACCEPT` with a blocking `dely wait`,
+on `82aa354` a Codex Control reached `ACCEPT` with a blocking `agentx wait`,
 and branch, disposition and human count could not tell.
 
 All three rows run for a release. Rows 2 and 3 rotate which harness is Control,
 implementer and reviewer, and a rotation is the only thing that exercises a
 harness in a role it does not hold in row 1. The release floor is ten rows
-(1–9 and 12), not row 1: rows 10 and 11 run when `start()` in `dely.js` or
-`omp/dely-pin.ts` changes. A release that ran fewer says so in its decision
+(1–9 and 12), not row 1: rows 10 and 11 run when `start()` in `agentx.js` or
+`omp/agentx-pin.ts` changes. A release that ran fewer says so in its decision
 record and names which rows it skipped. The 0.19.0 release did exactly that
 — it ran rows 1, 4, 5 and 7 only — and recorded the exception rather than
 moving the floor.
@@ -214,7 +214,7 @@ moving the floor.
 
 Inside one of the rows above, after the implement worker has acknowledged
 **and** Control's own wait for that Run is running
-(`pgrep -f "dely.js wait --run <run>"` for a background Control, the
+(`pgrep -f "agentx.js wait --run <run>"` for a background Control, the
 `wait-bg` waiter for a waker one), kill the worker's agent process from outside
 Orca. The kill trigger polls every 1 s and fires when that wait is running
 **and** the implementer process is still alive **and** no `settled` event
@@ -237,7 +237,7 @@ This is the row that catches a helper which prints `DISPATCHED` without ever
 waiting for the acknowledgement: such a helper passes row 1 whenever the worker
 happens to start, and fails here.
 
-The signal is Orca's, not Dely's. `dely wait` reports `ATTENTION` when
+The signal is Orca's, not AgentX's. `agentx wait` reports `ATTENTION` when
 `dispatchStatus` is `dispatched` and either `nextAction.kind` is not `none`
 or `projection.attention.requiresAction` is true. An absent `nextAction` is
 absent rather than `none`, and is not `ATTENTION`.
@@ -246,7 +246,7 @@ This row exercises the second of the skill's two `ATTENTION` routes: the
 killed worker has `nextAction: none`, so there is no argv to run. Control
 checks it with `worker-read` and `worker-show`, and with the process gone
 runs `worker-stop`, then `worker-abandon` when the stop reports
-`stop_unknown`, then `worker-release`, then one fresh `dely dispatch` with
+`stop_unknown`, then `worker-release`, then one fresh `agentx dispatch` with
 the same prompt file. That is the "again exactly once" in the pass
 condition. That projection has already changed shape between Orca releases,
 so record the Orca version next to the result, and when this row fails,
@@ -268,7 +268,7 @@ neither is a substitute.
 ## Step 5 — row 5, a pin that has not answered its dialog
 
 Use a path that no harness has trusted — a new directory each time, never
-`r1` to `r3` — with a Claude Code pin, and run `dely preflight` inside a Run.
+`r1` to `r3` — with a Claude Code pin, and run `agentx preflight` inside a Run.
 
 **Pass:** `PREFLIGHT … FAIL` in under 60 s, the printed `last output` contains
 at least one line of the dialog, and `orca terminal list` shows nothing left
@@ -302,7 +302,7 @@ untrusted pin, a human trusts it, and the same Run continues to `ACCEPT`.
 
 Setup:
 
-- a path no harness has trusted, `~/dely-probe/t-<sha>`;
+- a path no harness has trusted, `~/agentx-probe/t-<sha>`;
 - Control is Codex CLI or Cursor Agent CLI, **never Claude Code**, because
   Claude's own startup dialog is the trust step: answering it would pre-trust
   the path and the row would test nothing;
@@ -313,7 +313,7 @@ Steps and their pass conditions:
 1. Control starts the delivery and dispatches the implementer, which cannot
    acknowledge behind Claude's dialog. From 0.20.0 a delivery does not
    preflight first, so the sequence is `NO_ACK` after `ACK_S` (60 s), then one
-   `dely preflight` that fails the Claude pin. The clock starts at the Run's
+   `agentx preflight` that fails the Claude pin. The clock starts at the Run's
    `no_ack` event: a dispatch that never acknowledges writes `no_ack`, not
    `dispatch`. **Pass:** within 150 s of the `no_ack` event, the log for the
    Run shows a `preflight` failing the Claude pin and Control has stopped on a
@@ -327,7 +327,7 @@ Steps and their pass conditions:
    whose skill had lost the `PREFLIGHT … FAIL` route, Control dispatched a
    second time into the same dialog and stopped about 4 min after the first
    dispatch.
-2. Act as the human: `probe/trust.sh ~/dely-probe/t-<sha>`. It opens Claude in
+2. Act as the human: `probe/trust.sh ~/agentx-probe/t-<sha>`. It opens Claude in
    an Orca terminal, answers the dialog, verifies
    `projects[<path>].hasTrustDialogAccepted` in `~/.claude.json`, and closes
    the terminal. **Pass:** it prints `TRUSTED`. On `NOT_TRUSTED`, stop and
@@ -351,14 +351,14 @@ second.
 
 ## Step 8 — row 8, OMP worker with a valid pin
 
-Build a probe repository under `~/dely-probe/` whose `implement` pin is OMP
+Build a probe repository under `~/agentx-probe/` whose `implement` pin is OMP
 with a Model `selector` from `omp models --json` and an Effort that is one of
 that model's `thinking` levels, and with the pinned model different from
 OMP's configured default.
 `probe/mkrepo.sh` writes whatever harness names it is given; OMP needs no
-trust step. From that repository run `dely dispatch` for `implement`.
+trust step. From that repository run `agentx dispatch` for `implement`.
 
-**Pass:** `dely dispatch` prints `DISPATCHED <id>` — the post-acknowledgement
+**Pass:** `agentx dispatch` prints `DISPATCHED <id>` — the post-acknowledgement
 check passed. Record `worker-show` `result.projection.provider.model` at
 the acknowledgement; if that value is not already the pinned selector,
 record how long after the acknowledgement it became the pin. The last
@@ -369,12 +369,12 @@ assistant message, the first included, is the pinned model; and
 If the helper prints `DISPATCHED` but the first request ran OMP's
 configured default, the check compared a different field or format.
 
-Then keep the same pin and stop this dispatch from loading `omp/dely-pin.ts`
+Then keep the same pin and stop this dispatch from loading `omp/agentx-pin.ts`
 without touching any user configuration beyond this plugin:
-`omp plugin disable dely`. Dispatch `implement` again. Re-enable with
-`omp plugin enable dely` before later rows.
+`omp plugin disable agentx`. Dispatch `implement` again. Re-enable with
+`omp plugin enable agentx` before later rows.
 
-**Pass:** `dely dispatch` prints
+**Pass:** `agentx dispatch` prints
 `FAILED <id> pin not applied: expected <selector>, saw <value or none>`
 and does not print `DISPATCHED`. A print of `DISPATCHED`, or a warning
 that still dispatches, is a fail: the helper did not stop a worker that
@@ -385,25 +385,25 @@ was not running the pin.
 Same probe-repository setup as row 8's first dispatch (plugin enabled), with
 a selector `omp models --json` does not offer.
 
-**Pass:** `dely dispatch` prints `NO_ACK` whose quote contains
-`DELY-PIN-FAIL`, and that session has no assistant message. If the worker
+**Pass:** `agentx dispatch` prints `NO_ACK` whose quote contains
+`AGENTX-PIN-FAIL`, and that session has no assistant message. If the worker
 acknowledged and completed on OMP's default model, the extension threw or
 called `ctx.shutdown()` instead of exiting the process.
 
 ## Step 10 — row 10, OMP worker with Model `default`
 
-Run this row when `start()` in `dely.js` or `omp/dely-pin.ts` changes.
+Run this row when `start()` in `agentx.js` or `omp/agentx-pin.ts` changes.
 Same probe-repository setup as row 8's first dispatch, with Model `default`
 and Effort `default`.
 
-**Pass:** the worker transcript's first user message has no `dely-pin:`
-line. A first user message that contains a `dely-pin:` line is a fail.
+**Pass:** the worker transcript's first user message has no `agentx-pin:`
+line. A first user message that contains an `agentx-pin:` line is a fail.
 
-## Step 11 — row 11, a second `dely-pin:` line in an interactive OMP session
+## Step 11 — row 11, a second `agentx-pin:` line in an interactive OMP session
 
-Run this row when `start()` in `dely.js` or `omp/dely-pin.ts` changes.
-Open an interactive OMP session (not a `dely dispatch`). After it has
-started, send a second prompt that carries a `dely-pin:` line and read its
+Run this row when `start()` in `agentx.js` or `omp/agentx-pin.ts` changes.
+Open an interactive OMP session (not an `agentx dispatch`). After it has
+started, send a second prompt that carries an `agentx-pin:` line and read its
 model.
 
 **Pass:** the session's model is unchanged from before that prompt. If the
@@ -411,22 +411,22 @@ model switched, the extension applied the pin on a start after the first.
 
 ## Step 12 — row 12, OMP as Control
 
-Launch OMP as Control. It dispatches a worker and runs `dely wait-bg` as its
-last command. Separately, `dely wait --control omp` from a shell.
+Launch OMP as Control. It dispatches a worker and runs `agentx wait-bg` as its
+last command. Separately, `agentx wait --control omp` from a shell.
 
-**Pass:** `dely wait-bg` reaches `SETTLED`, and `dely wait --control omp`
-prints `REFUSED`. If Control ran `dely wait` as a background job, that job
-is killed at 3600 s, which is `dely wait`'s default deadline.
+**Pass:** `agentx wait-bg` reaches `SETTLED`, and `agentx wait --control omp`
+prints `REFUSED`. If Control ran `agentx wait` as a background job, that job
+is killed at 3600 s, which is `agentx wait`'s default deadline.
 
 ## Step 13 — clean up
 
 - uninstall the candidate from Claude Code, Codex CLI and Cursor Agent CLI;
-- remove the OMP install (`omp plugin uninstall dely`; needs `bun` on PATH;
-  when `bun` is absent, `omp plugin disable dely` stops OMP loading Dely's
-  skills and extension and leaves `dely` listed, then delete
-  `~/.omp/plugins/node_modules/dely`, `rmdir` the then-empty
+- remove the OMP install (`omp plugin uninstall agentx`; needs `bun` on PATH;
+  when `bun` is absent, `omp plugin disable agentx` stops OMP loading AgentX's
+  skills and extension and leaves `agentx` listed, then delete
+  `~/.omp/plugins/node_modules/agentx`, `rmdir` the then-empty
   `~/.omp/plugins/node_modules` directory, and rewrite
-  `~/.omp/plugins/omp-plugins.lock.json` with `jq 'del(.plugins.dely)'`);
+  `~/.omp/plugins/omp-plugins.lock.json` with `jq 'del(.plugins.agentx)'`);
 - delete the snapshot;
 - keep `r1` to `r3` so their trust entries survive;
 - remove the row 5, row 7 and OMP-row paths, and the trust entries of the

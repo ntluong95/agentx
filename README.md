@@ -1,11 +1,11 @@
-# dely
+# AgentX
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/logo.svg">
-  <img src="assets/logo-light.svg" alt="dely" width="72" height="72">
+  <img src="assets/logo-light.svg" alt="AgentX" width="72" height="72">
 </picture>
 
-Ask for a change; Dely takes it through design approval, implementation,
+Ask for a change; AgentX takes it through design approval, implementation,
 independent review, and a pull request you merge.
 
 https://github.com/user-attachments/assets/83ec539a-6551-4807-8517-0c73e5d171d7
@@ -17,13 +17,13 @@ https://github.com/user-attachments/assets/83ec539a-6551-4807-8517-0c73e5d171d7
 - [Quickstart](#quickstart)
 - [Project setup](#project-setup)
 - [Install](#install)
-- [How Dely works](#how-dely-works)
+- [How AgentX works](#how-agentx-works)
 - [Log](#log)
 - [Troubleshooting](#troubleshooting)
 
 ## Quickstart
 
-Install Orca, then Dely.
+Install Orca, then AgentX.
 
 1. Install the [desktop app](https://www.onorca.dev/docs/install).
 2. Register the CLI (it ships with the app): Settings → General → Orca CLI.
@@ -38,7 +38,7 @@ orca status --json
 orca orchestration run-list --json
 ```
 
-`dely:delivery` stops if this preflight fails. On Linux the binary is
+`agentx:delivery` stops if this preflight fails. On Linux the binary is
 `orca-ide` (see the [install docs](https://www.onorca.dev/docs/install)).
 
 Optional agent skills `orca-cli` and `orchestration`:
@@ -46,25 +46,23 @@ https://www.onorca.dev/docs/cli/skills
 
 Then:
 
-1. Install `dely` in the harness ([Install](#install)).
+1. Install `agentx` in the harness ([Install](#install)).
 2. Open a session in the project.
-3. Invoke `dely:setup` (optional).
+3. Invoke `agentx:setup` (optional).
 4. Ask for a change.
 
 ## Project setup
 
-In the project, invoke `dely:setup`.
+In the project, invoke `agentx:setup`.
 
 It asks Quick (this harness for both phases) or Customize (pick harness,
 model, and effort for `implement` and `review`), then writes one managed
-block into `AGENTS.md`. Skip it and `dely:delivery` uses the current
+block into `AGENTS.md`. Skip it and `agentx:delivery` uses the current
 harness and that harness's defaults.
 
 ## Install
 
-The plugin is `dely`, from the `dely` marketplace at
-`https://github.com/hieuphung97/dely.git`. The skill name is `delivery`;
-invoke it as `dely:delivery`. The runtime needs Node 18 or newer on PATH.
+The plugin is `agentx`, published from `https://github.com/ntluong95/agentx.git`. The skill name is `delivery`; invoke it as `agentx:delivery`. The runtime needs Node 18 or newer on PATH.
 
 Four harnesses are supported today: Claude Code, Codex CLI, Cursor
 Agent CLI, and OMP. That list is not closed. `harnesses.json` at the
@@ -74,15 +72,15 @@ Antigravity CLI, Grok Build, and Kiro CLI.
 ### Claude Code
 
 ```bash
-claude plugin marketplace add https://github.com/hieuphung97/dely.git
-claude plugin install dely@dely
+claude plugin marketplace add https://github.com/ntluong95/agentx.git
+claude plugin install agentx@agentx
 
 claude plugin list                 # verify it is installed
-claude plugin update dely          # update (restart required to apply)
-claude plugin uninstall dely       # uninstall
+claude plugin update agentx          # update (restart required to apply)
+claude plugin uninstall agentx       # uninstall
 ```
 
-A Claude Code Control was observed running `scripts/dely` straight out of
+A Claude Code Control was observed running `scripts/agentx` straight out of
 the marketplace source directory it was added from, not from
 `~/.claude/plugins/cache`. A hash check that covers only the cache proves
 nothing; it must cover every location that can serve the skill.
@@ -90,12 +88,12 @@ nothing; it must cover every location that can serve the skill.
 ### Codex CLI
 
 ```bash
-codex plugin marketplace add https://github.com/hieuphung97/dely.git
-codex plugin add dely@dely
+codex plugin marketplace add https://github.com/ntluong95/agentx.git
+codex plugin add agentx@agentx
 
 codex plugin list                  # verify it is installed
 codex plugin marketplace upgrade   # update: see below
-codex plugin remove dely@dely      # uninstall
+codex plugin remove agentx@agentx      # uninstall
 ```
 
 `codex plugin marketplace add --ref <ref>` pins the marketplace to a tag
@@ -111,17 +109,17 @@ the marketplace and the plugin, then add and install again.
 ### Cursor Agent CLI
 
 ```bash
-cursor-agent plugin marketplace add https://github.com/hieuphung97/dely.git
+cursor-agent plugin marketplace add https://github.com/ntluong95/agentx.git
 
 # verify it is installed
 cursor-agent plugin marketplace list
 
 # re-index, no fetch
-cursor-agent plugin marketplace update dely
+cursor-agent plugin marketplace update agentx
 
 # refresh: remove and re-add (remove drops the marketplace, not the plugin)
-cursor-agent plugin marketplace remove dely
-cursor-agent plugin marketplace add https://github.com/hieuphung97/dely.git
+cursor-agent plugin marketplace remove agentx
+cursor-agent plugin marketplace add https://github.com/ntluong95/agentx.git
 ```
 
 Cursor Agent CLI cannot install from a local snapshot:
@@ -136,15 +134,15 @@ then choose `Uninstall` from the `Installed` tab and install again from the
 
 Add the marketplace first with `cursor-agent plugin marketplace add`, then in
 a Cursor Agent session type `/plugin` and press Enter. Open the `Marketplace`
-tab, type `dely` in the search box, press Enter on `dely (dely)`, and choose
+tab, type `agentx` in the search box, press Enter on `agentx (agentx)`, and choose
 `Install for you (user scope)` (or `Install for all collaborators on this
 repository (project scope)`).
 
-To uninstall, open the `Installed` tab, select `dely`, and choose
+To uninstall, open the `Installed` tab, select `agentx`, and choose
 `Uninstall`. `cursor-agent plugin marketplace remove` removes the marketplace
 entry and leaves the plugin installed.
 
-Type `/dely` to filter the palette to Dely's `/delivery` and `/setup`.
+Type `/agentx` to filter the palette to AgentX's `/delivery` and `/setup`.
 
 ### OMP
 
@@ -154,29 +152,29 @@ command links the path rather than copying it, so OMP runs whatever the
 checkout holds.
 
 ```bash
-git clone https://github.com/hieuphung97/dely.git
+git clone https://github.com/ntluong95/agentx.git agentx
 # or unpack a git archive snapshot
-omp plugin install /path/to/dely
+omp plugin install /path/to/agentx
 
 omp plugin list --json             # verify it is installed
 omp skill list --json              # verify the skills loaded
 
 # update: git pull in that dedicated clone, then a new OMP session
-omp plugin uninstall dely          # uninstall; needs bun on PATH
-omp plugin disable dely            # stop OMP loading Dely's skills and extension
+omp plugin uninstall agentx          # uninstall; needs bun on PATH
+omp plugin disable agentx            # stop OMP loading AgentX's skills and extension
 ```
 
-When `bun` is absent, `omp plugin uninstall dely` is unavailable.
-`omp plugin disable dely` stops OMP loading Dely's skills and extension; it
-leaves `dely` in `omp plugin list`. Then delete
-`~/.omp/plugins/node_modules/dely`, `rmdir` the then-empty
+When `bun` is absent, `omp plugin uninstall agentx` is unavailable.
+`omp plugin disable agentx` stops OMP loading AgentX's skills and extension; it
+leaves `agentx` in `omp plugin list`. Then delete
+`~/.omp/plugins/node_modules/agentx`, `rmdir` the then-empty
 `~/.omp/plugins/node_modules` directory, and rewrite
-`~/.omp/plugins/omp-plugins.lock.json` with `jq 'del(.plugins.dely)'`.
+`~/.omp/plugins/omp-plugins.lock.json` with `jq 'del(.plugins.agentx)'`.
 
-The `dely` marketplace does not install OMP's extension. Installing from a
+The `agentx` marketplace does not install OMP's extension. Installing from a
 git URL was not checked.
 
-Dely's `setup` and `delivery` are not namespaced in OMP and take precedence
+AgentX's `setup` and `delivery` are not namespaced in OMP and take precedence
 over a project's own skills of those names. OMP has no workspace-trust gate:
 a repository's `.omp/extensions`, `.omp/skills` and `.omp/config.yml` take
 effect without a prompt, and approvals follow the user's
@@ -184,7 +182,7 @@ effect without a prompt, and approvals follow the user's
 
 To pin OMP, set Model to a `selector` from `omp models --json` and Effort
 to one of that model's `thinking` levels. The helper appends
-`dely-pin: <selector>` or `dely-pin: <selector> <effort>` to the spec.
+`agentx-pin: <selector>` or `agentx-pin: <selector> <effort>` to the spec.
 No `.omp/config.yml` is needed.
 
 ### Checked versions
@@ -200,16 +198,32 @@ against — observations, not a promised minimum:
 | OMP | 18.3.4 |
 | Orca | 1.4.212 |
 
-## How Dely works
+## How AgentX works
 
-Ask for a change. Approve the design when asked. Dely implements, a
+Ask for a change. Approve the design when asked. AgentX implements, a
 different session reviews, then opens a PR. You merge. A Spike investigates
 only — no delivery run.
 
+### Repository graph contracts
+
+AgentX can validate and compile a repository-stored Mermaid flowchart into a
+deterministic task manifest without starting Orca:
+
+```bash
+skills/delivery/scripts/agentx validate-graph --graph path/to/workflow.mmd
+skills/delivery/scripts/agentx compile-graph --graph path/to/workflow.mmd
+```
+
+The graph mode is opt-in. Mermaid arrows are task dependencies. Same-file
+`%%@agentx { ... }` JSON comments carry policy such as agent, workspace,
+fallback and artifact metadata. The compiled manifest is policy input for a
+future Orca materialization step; existing `agentx:delivery` behavior is
+unchanged.
+
 Control loads `orca skills get orchestration` and follows that supervised
-loop. `dely preflight` runs in setup, and again after `NO_ACK`. After
+loop. `agentx preflight` runs in setup, and again after `NO_ACK`. After
 `DISPATCHED`, Control waits by the harness Control wake: `background`
-runs `dely wait`; `waker` runs `dely wait-bg` as its last command and
+runs `agentx wait`; `waker` runs `agentx wait-bg` as its last command and
 ends the turn. It never acts on an Orca nudge. `SETTLED` hands over the
 batch; `ATTENTION` with a `nextAction` other than `none` runs the argv Orca
 printed, and `ATTENTION` with `nextAction: none` and `requiresAction` means
@@ -224,8 +238,8 @@ The workflow contract is [`skills/delivery/SKILL.md`](skills/delivery/SKILL.md).
 
 ## Log
 
-`~/.dely/log.jsonl` is machine-local JSON Lines, one object per line. It
-is off unless `~/.dely/` exists; `mkdir ~/.dely` turns it on, and Dely
+`~/.agentx/log.jsonl` is machine-local JSON Lines, one object per line. It
+is off unless `~/.agentx/` exists; `mkdir ~/.agentx` turns it on, and AgentX
 never creates that directory. A missing directory means nothing is
 written and nothing is created.
 
@@ -235,13 +249,13 @@ harness printed.
 
 ## Troubleshooting
 
-- **`dely:delivery` stops immediately.** Orca is not running or a required
+- **`agentx:delivery` stops immediately.** Orca is not running or a required
   capability is absent, including orchestration. Run the Quickstart
   preflight, then retry.
 - **A stale skills copy shadows a newer plugin.** Codex also loads
   `~/.agents/skills`, and a copy left there — or a symlink to it from
   `~/.claude/skills` — wins over the plugin. Claude Code was observed
-  running `scripts/dely` from the marketplace source directory, not from
+  running `scripts/agentx` from the marketplace source directory, not from
   `~/.claude/plugins/cache`. Cursor Agent CLI reads the Claude plugin
   cache, and a Cursor copy with a different hash wins over it. Compare
   `skills/delivery/SKILL.md` by hash at every location that can serve the
@@ -259,7 +273,7 @@ harness printed.
 
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — issue-first workflow, fork/branch/pull
   request flow, and review expectations. External contributors do not need
-  Dely or Orca.
+  AgentX or Orca.
 - [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) — Contributor Covenant 2.1.
 - [`SECURITY.md`](SECURITY.md) — how to report a vulnerability privately.
 - [`docs/decisions.md`](docs/decisions.md) — settled, open, and rejected

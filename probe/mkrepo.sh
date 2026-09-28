@@ -7,28 +7,28 @@
 # Example: probe/mkrepo.sh r1 "Claude Code" claude-opus-5 medium \
 #                                "Codex CLI" gpt-5.1-codex high
 #
-# Writes ~/dely-probe/<name> with a bare remote, a delivery-sized task, and a
-# Dely managed block carrying the two pins. Re-running it destroys and rebuilds
+# Writes ~/agentx-probe/<name> with a bare remote, a delivery-sized task, and a
+# AgentX managed block carrying the two pins. Re-running it destroys and rebuilds
 # the repository, which is the point: the harness trust entry is keyed on the
 # path and survives, so only the first run needs a human.
 set -eu
 
-ROOT="$HOME/dely-probe"
+ROOT="$HOME/agentx-probe"
 name=${1-}
 if [ $# -ne 7 ] || [ -z "$name" ]; then
   echo "usage: probe/mkrepo.sh <name> <implH> <implM> <implE> <revH> <revM> <revE>" >&2
   exit 2
 fi
 
-# Hard limit: this script only ever writes under ~/dely-probe/.
+# Hard limit: this script only ever writes under ~/agentx-probe/.
 case "$name" in
   */*|.*|"") echo "REFUSED name must be a single path segment, not '$name'" >&2; exit 2 ;;
 esac
 mkdir -p "$ROOT"
 base=$(cd "$ROOT" && pwd -P)
 case "$base" in
-  "$HOME"/dely-probe) ;;
-  *) echo "REFUSED $ROOT resolves outside \$HOME/dely-probe" >&2; exit 2 ;;
+  "$HOME"/agentx-probe) ;;
+  *) echo "REFUSED $ROOT resolves outside \$HOME/agentx-probe" >&2; exit 2 ;;
 esac
 
 repo="$base/$name"
@@ -90,17 +90,17 @@ git diff --check
 node --test test/
 \`\`\`
 
-<!-- dely:begin -->
-## Dely
+<!-- agentx:begin -->
+## AgentX
 
-Bounded or Architectural work invokes \`dely:delivery\`; Spike starts no
+Bounded or Architectural work invokes \`agentx:delivery\`; Spike starts no
 delivery run.
 
 | Phase | Harness | Model | Effort |
 | --- | --- | --- | --- |
 | \`implement\` | ${2} | ${3} | ${4} |
 | \`review\` | ${5} | ${6} | ${7} |
-<!-- dely:end -->
+<!-- agentx:end -->
 SRC
 
 printf '@AGENTS.md\n' > "$repo/CLAUDE.md"

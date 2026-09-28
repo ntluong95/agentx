@@ -5,13 +5,13 @@ export default function (pi) {
     first = false;
     const prompt = String((event && event.prompt) || "");
     const matched = [
-      ...prompt.matchAll(/^dely-pin:[ \t]+(\S+)(?:[ \t]+(\S+))?[ \t]*$/gm),
+      ...prompt.matchAll(/^agentx-pin:[ \t]+(\S+)(?:[ \t]+(\S+))?[ \t]*$/gm),
     ].pop();
     if (!matched) return;
     const selector = matched[1];
     const level = matched[2] || "";
     const fail = () => {
-      const msg = "DELY-PIN-FAIL " + selector;
+      const msg = "AGENTX-PIN-FAIL " + selector;
       process.on("exit", () => process.stderr.write("\n" + msg + "\n"));
       process.exit(1);
     };

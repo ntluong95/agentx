@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Configure a project's AGENTS.md with one managed Dely block — per-phase harness, model and effort for implement and review, discovered from the live harness surface. Use at the start of a Control Session, when the project has no managed block, or when those pins need rewriting from the installed harnesses. Not for installing plugins, trusting hooks, or delivering a change; that is delivery.
+description: Configure a project's AGENTS.md with one managed AgentX block — per-phase harness, model and effort for implement and review, discovered from the live harness surface. Use at the start of a Control Session, when the project has no managed block, or when those pins need rewriting from the installed harnesses. Not for installing plugins, trusting hooks, or delivering a change; that is delivery.
 ---
 
 # Setup
@@ -24,7 +24,7 @@ because Orca is the constant, required execution plane. There is no control
 row, because the current interactive session already exists and is never
 dispatched. There is no release row, because release has no LLM worker. There
 is no Plan Mode field and no design-skill field: the active design method is
-a property of the harness and session, not a Dely setting.
+a property of the harness and session, not an AgentX setting.
 
 ## Two paths
 
@@ -47,21 +47,24 @@ Ask which path. Do not start writing until that is answered.
 Exactly one block, and nothing else:
 
 ```markdown
-<!-- dely:begin -->
-## Dely
+<!-- agentx:begin -->
+## AgentX
 
-Bounded or Architectural work invokes `dely:delivery`; Spike starts no
+Bounded or Architectural work invokes `agentx:delivery`; Spike starts no
 delivery run.
 
 | Phase | Harness | Model | Effort |
 | --- | --- | --- | --- |
 | `implement` | … | … | … |
 | `review` | … | … | … |
-<!-- dely:end -->
+<!-- agentx:end -->
 ```
 
-If the markers already exist, replace the region between them. If they do
-not, append the block. Touch nothing else.
+If the AgentX markers already exist, replace the region between them. If they
+do not exist but exactly one legacy `<!-- dely:begin -->` /
+`<!-- dely:end -->` block exists, treat that legacy block as the managed block
+for a one-time migration and replace the whole legacy region with the AgentX
+block. If neither marker pair exists, append the block. Touch nothing else.
 
 ## Discovery
 
@@ -128,7 +131,9 @@ Stop and report to the human, unchanged, when:
 
 - the markers are broken (a `begin` without a matching `end`, or an `end`
   before its `begin`)
-- more than one `<!-- dely:begin -->` is present
+- more than one `<!-- agentx:begin -->` is present
+- more than one legacy `<!-- dely:begin -->` is present
+- both an AgentX managed block and a legacy `<!-- dely:begin -->` block are present
 - a legacy phase table outside the block contradicts the block
 
 Do not merge two tables, delete a legacy table, or guess which is
@@ -167,7 +172,7 @@ harness store. The human closes the terminal when done. `orca-preflight` and
 ## Preflight
 
 Open a Run first as `orca skills get orchestration` describes. Then run
-`../delivery/scripts/dely preflight --repo <path> --run <runId>` relative
+`../delivery/scripts/agentx preflight --repo <path> --run <runId>` relative
 to this skill. Any `PREFLIGHT … FAIL` (exit 1): do not dispatch to any pin;
 relay the printed reason to the human.
 

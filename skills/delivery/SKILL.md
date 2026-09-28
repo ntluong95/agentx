@@ -5,7 +5,7 @@ description: Deliver a change through an approved design contract, sequential im
 
 # Delivery
 
-Dely accepts a request that may still be vague, brings it to an approved
+AgentX accepts a request that may still be vague, brings it to an approved
 design contract, then automates sequential implementation, independent
 review, and pull-request preparation. It is a thin control protocol, not an
 orchestrator, SDLC framework, or second source of Git state.
@@ -17,9 +17,9 @@ never names them.
 ## Two human gates
 
 1. Approve the design contract before candidate mutation.
-2. Merge or publish after Dely has prepared the reviewed pull request.
+2. Merge or publish after AgentX has prepared the reviewed pull request.
 
-Dely pauses outside those gates only for a scope or architecture change, a
+AgentX pauses outside those gates only for a scope or architecture change, a
 destructive action, new authority, replan, or an unavailable required runtime.
 
 ## The control session
@@ -90,24 +90,24 @@ counterexample, and focused instruments; branch, base, remote, and
 pull-request target; resolved harness, model, and effort for dispatched
 roles; and authority to branch, commit owned paths, run gates, push, and
 open or update a pull request. It never authorises merge, force-push,
-stash, reset, cleanup, or an edit outside owned scope. Dely stages and
+stash, reset, cleanup, or an edit outside owned scope. AgentX stages and
 commits only contract-owned paths. It never stashes, resets, cleans, or
 silently absorbs the user's existing changes. If a path carries protected
-baseline changes and Dely must also modify it, Control pauses rather than
+baseline changes and AgentX must also modify it, Control pauses rather than
 combining ownership.
 
 ## Orca and the helper
 
 Orca is the required execution plane. It launches and supervises fresh
 native harness TUIs with the resolved harness, model, and effort.
-Orchestration is a required Orca capability. `dely:delivery` starts Orca,
+Orchestration is a required Orca capability. `agentx:delivery` starts Orca,
 then Control loads `orca skills get orchestration` and follows its
 supervised loop. It stops only when the CLI is missing, the runtime cannot
 start, or a required capability is absent — there is no direct dispatch and
-no headless fallback of any kind. The launcher is `scripts/dely` relative
+no headless fallback of any kind. The launcher is `scripts/agentx` relative
 to this skill. Control learns the helper's interface by running
-`scripts/dely` with no arguments, which prints its identity and usage,
-and does not read `scripts/dely.js`. Control's wake mode is that harness's
+`scripts/agentx` with no arguments, which prints its identity and usage,
+and does not read `scripts/agentx.js`. Control's wake mode is that harness's
 `controlWake` in `../../harnesses.json`. The preflight step runs in setup
 and again after a `NO_ACK`; a delivery does not preflight before its first
 dispatch.
@@ -127,7 +127,7 @@ It does not define role dispositions or the conditions for reaching one —
 those belong to this skill, and a prompt that restates them narrows or
 contradicts them. Where the design contract states an acceptance row, the
 prompt carries that row as written. Every dispatch goes through
-`dely dispatch`. Control does not compose a worker launch or call
+`agentx dispatch`. Control does not compose a worker launch or call
 `worker-start` by hand. The helper reads the pins from `AGENTS.md` and
 appends the acknowledgement instruction and a sentence that the Orca
 preamble and the spec file are everything the worker needs and that it
@@ -153,9 +153,9 @@ looks identical to one that pinned the same value deliberately.
 of **this Control's own harness** — not the harness of the worker being
 waited on. `--control` is this session's harness id, the same id whatever
 worker is in flight. **background** runs
-`dely wait --run <run> --control <self>` as a background command and ends
-the turn; **waker** runs `dely wait-bg --run <run> --control <self>` as its
-last command, then ends the turn (a waker Control never runs `dely wait`);
+`agentx wait --run <run> --control <self>` as a background command and ends
+the turn; **waker** runs `agentx wait-bg --run <run> --control <self>` as its
+last command, then ends the turn (a waker Control never runs `agentx wait`);
 **unsupported** cannot be Control. The helper reads the harness of the Orca
 terminal it runs in and refuses a waker even when `--control` names another
 one, so `REFUSED … (called with --control …)` means use `wait-bg`.
@@ -168,21 +168,21 @@ than `none`, run the argv Orca printed and skip that id next time. With
 of the worker rather than asked for something: read it with `worker-read`
 and `worker-show`, and if the process is gone, `worker-stop`, then
 `worker-abandon` when the stop reports `stop_unknown`, then
-`worker-release`, then one fresh `dely dispatch` with the same prompt file.
+`worker-release`, then one fresh `agentx dispatch` with the same prompt file.
 A second time on the same input goes to the human. An absent `nextAction` is
 absent, not `none` with attention — that row is not `ATTENTION` and the wait
 continues. `STALLED`: read the output, then wait again or recover.
-`NO_ACK`: run setup's `dely preflight` in the same Run. If every pin passes,
-one fresh `dely dispatch` with the same prompt file; never retry into the same
+`NO_ACK`: run setup's `agentx preflight` in the same Run. If every pin passes,
+one fresh `agentx dispatch` with the same prompt file; never retry into the same
 terminal, and never reuse a settled terminal; a second failure on the same
 input goes to the human. Any `PREFLIGHT … FAIL`: do not dispatch to any
 pin — a failed pin's cause is already known and another dispatch only
 repeats it.
 Stop and relay the printed reason: the harness, the path, and that the human
-opens that harness there once to answer its own dialog; Dely never answers
+opens that harness there once to answer its own dialog; AgentX never answers
 it. The failed worker is already stopped and released. When the human says
-it is done, rerun `dely preflight` in the same Run and continue from there.
-`FAILED`: one fresh `dely dispatch` with the same prompt file and the same
+it is done, rerun `agentx preflight` in the same Run and continue from there.
+`FAILED`: one fresh `agentx dispatch` with the same prompt file and the same
 retry limits. `DEADLINE`: a checkpoint — check `worker-list` and the last
 output; if the worker is progressing, wait again; a second `DEADLINE` with
 no progress goes to the human. `ERROR`: go to the human. The worker reports
@@ -203,6 +203,16 @@ no result, an exhausted quota, an authentication error — which is not
 capability is absent; an action needs authority policy reserves to the
 human; or the same worker fails twice on the same input. Say what you know,
 what you tried, and what the options are. Do not pick one.
+
+## Graph contract helpers
+
+`scripts/agentx validate-graph --graph <file>` and
+`scripts/agentx compile-graph --graph <file>` are pure, opt-in helpers for a
+repository Mermaid flowchart. They do not dispatch workers or mutate Orca.
+Arrows are dependency edges. Same-file `%%@agentx { ... }` JSON comments carry
+policy metadata. The compiler emits a deterministic manifest and digest that
+can be approved before a later Orca materialization step. Existing delivery
+runs do not use graph mode unless a human explicitly chooses it.
 
 ## Implementation
 
@@ -324,16 +334,16 @@ no LLM worker and makes no post-review candidate edit.
 Any candidate mutation after the applicable final review invalidates that
 verdict; Control reruns the affected gates and review on the new exact HEAD.
 Affected gates are those that can observe the change class; a project may
-name that subset. Dely never merges, force-pushes, or publishes outside the
+name that subset. AgentX never merges, force-pushes, or publishes outside the
 approved target and authority. If project policy cannot publish work in
-progress, Dely delays the push and pull request until the applicable review
+progress, AgentX delays the push and pull request until the applicable review
 accepts.
 
-Maintenance logging is machine-local and opt-in at `~/.dely/log.jsonl`. It
-stays opt-in on the presence of `~/.dely/` and is never created by Dely.
-Control closes a delivery with `dely log --run <run> --json '<object>'`,
+Maintenance logging is machine-local and opt-in at `~/.agentx/log.jsonl`. It
+stays opt-in on the presence of `~/.agentx/` and is never created by AgentX.
+Control closes a delivery with `agentx log --run <run> --json '<object>'`,
 after release or when it stops early, rather than assembling a line by hand.
-`dely` with no arguments prints which copy is running, and its usage.
+`agentx` with no arguments prints which copy is running, and its usage.
 
 ## Failure and recovery
 

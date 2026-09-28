@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Only the latest published release of Dely is supported with security fixes.
+Only the latest published release of AgentX is supported with security fixes.
 Please upgrade to the latest release before reporting an issue.
 
 ## Reporting a Vulnerability

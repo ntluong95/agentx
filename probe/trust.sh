@@ -3,7 +3,7 @@
 # terminal, answer its own trust dialog, and verify the answer in the harness's
 # store.
 #
-# Usage: probe/trust.sh <repo path under ~/dely-probe> [harness]
+# Usage: probe/trust.sh <repo path under ~/agentx-probe> [harness]
 #
 # Only `claude` is supported, because its store key is the one that has been
 # measured. For any other harness, answer the dialog by hand: a script that
@@ -11,16 +11,16 @@
 # script did exactly that, twice, while `hasTrustDialogAccepted` stayed false,
 # and the delivery then failed its second preflight for the first reason.
 #
-# Dely itself never answers a dialog. This is probe tooling, it is not shipped
+# AgentX itself never answers a dialog. This is probe tooling, it is not shipped
 # in the skill, and no skill references it.
 set -eu
 
-ROOT="$HOME/dely-probe"
+ROOT="$HOME/agentx-probe"
 target=${1-}
 harness=${2-claude}
 
 if [ -z "$target" ]; then
-  echo "usage: probe/trust.sh <repo path under ~/dely-probe> [harness]" >&2
+  echo "usage: probe/trust.sh <repo path under ~/agentx-probe> [harness]" >&2
   exit 2
 fi
 
@@ -31,7 +31,7 @@ fi
 repo=$(cd "$target" && pwd -P)
 
 # Hard limit: this script only ever opens a harness on a path under
-# ~/dely-probe/. It is checked after resolving symlinks and `..`, and before
+# ~/agentx-probe/. It is checked after resolving symlinks and `..`, and before
 # anything is created.
 case "$repo/" in
   "$ROOT"/*) ;;

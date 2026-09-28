@@ -1,16 +1,16 @@
-# dely — Agent Instructions
+# AgentX — Agent Instructions
 
-This repository contains the `dely` package: the `delivery` skill and its
+This repository contains the `agentx` package: the `delivery` skill and its
 automation-first control protocol for coding agents, supported today on
-Claude Code, Codex CLI, and Cursor Agent CLI.
+Claude Code, Codex CLI, Cursor Agent CLI, and OMP.
 
 ## Source of truth
 
 - The workflow contract is `skills/delivery/SKILL.md`.
 - Settled, open, and rejected decisions are recorded in `docs/decisions.md`.
 - Installation and onboarding instructions are in `README.md`.
-- The closure gates below are the whole structural check. There is no test
-  suite and no CI workflow; nothing runs on a pull request automatically.
+- The closure gates below are the structural and focused test checks. There is
+  no CI workflow; nothing runs on a pull request automatically.
 - Live verification is `probe/checklist.md`, run by a separate agent session
   against a candidate installed from a `git archive` snapshot. When a delivery
   requires that checklist, it runs before the review dispatch, so the reviewed
@@ -19,7 +19,7 @@ Claude Code, Codex CLI, and Cursor Agent CLI.
   rule for this repository, not part of the portable protocol in `SKILL.md`.
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, and `.github/`
   (issue and pull-request templates) own the human contribution, conduct,
-  security, and PR contract; they need no Dely or Orca install to follow.
+  security, and PR contract; they need no AgentX or Orca install to follow.
 
 Repository artifacts are written in English.
 
@@ -30,9 +30,9 @@ Repository artifacts are written in English.
   investigation only and starts no delivery run.
 - Durable decisions live in `docs/decisions.md`; transient plans live in
   `docs/_plans/`.
-- Maintenance logging is machine-local and opt-in at `~/.dely/log.jsonl`
+- Maintenance logging is machine-local and opt-in at `~/.agentx/log.jsonl`
   (JSON Lines, one object per line); no project-owned log file is tracked.
-  Dely never creates `~/.dely/`: a missing directory means nothing is
+  AgentX never creates `~/.agentx/`: a missing directory means nothing is
   written and nothing is created. The log records failed and abandoned
   deliveries too, which the previous format did not.
 - A self-update runs its release phase through the frozen installed plugin
@@ -48,17 +48,17 @@ Repository artifacts are written in English.
 
 Name the model and reasoning effort on every dispatch.
 
-<!-- dely:begin -->
-## Dely
+<!-- agentx:begin -->
+## AgentX
 
-Bounded or Architectural work invokes `dely:delivery`; Spike starts no
+Bounded or Architectural work invokes `agentx:delivery`; Spike starts no
 delivery run.
 
 | Phase | Harness | Model | Effort |
 | --- | --- | --- | --- |
 | `implement` | Cursor Agent CLI | cursor-grok-4.6-high | default |
 | `review` | Codex CLI | gpt-5.6-sol | high |
-<!-- dely:end -->
+<!-- agentx:end -->
 
 The table is this repository's deployment selection, not the portable
 protocol. Per-harness facts — status, Control wake, trust, discovery,
@@ -82,14 +82,19 @@ jq -e . harnesses.json plugin.json .claude-plugin/plugin.json .claude-plugin/mar
 ```
 
 ```bash
-node --check skills/delivery/scripts/dely.js
-git ls-files -z '*.sh' 'skills/delivery/scripts/dely' | xargs -0 -n1 bash -n
+node --check skills/delivery/scripts/agentx.js
+git ls-files -z '*.sh' 'skills/delivery/scripts/agentx' | xargs -0 -n1 bash -n
 ```
 
 ```bash
-test "$(jq -r .version .claude-plugin/plugin.json)" = 0.22.0
-test "$(jq -r .version .codex-plugin/plugin.json)" = 0.22.0
-test "$(jq -r .version package.json)" = 0.22.0
+node --test test/*.test.js
+```
+
+
+```bash
+test "$(jq -r .version .claude-plugin/plugin.json)" = 0.23.0
+test "$(jq -r .version .codex-plugin/plugin.json)" = 0.23.0
+test "$(jq -r .version package.json)" = 0.23.0
 ```
 
 ```bash
@@ -99,6 +104,11 @@ test "$(jq -r 'has("type")' package.json)" = false
 ```bash
 test ! -e skills/delivery/references/harnesses.md
 ```
+
+```bash
+git grep -nE 'de[l]y|De[l]y|DE[L]Y|@de[l]y|de[l]y-pin|de[l]y\.js|scripts/de[l]y|~/\.de[l]y|de[l]y@|de[l]y:' -- . ':!docs/decisions.md' ':!docs/_plans' | grep -vE '^skills/setup/SKILL.md:[0-9]+:.*<!-- de[l]y:(begin|end) -->' && exit 1 || true
+```
+
 
 ```bash
 git grep -nE 'adoptCommand|adoptedPermission|adoptPath|readAdopts|writeAdopts|recordAdopt|takeAdopt|closeAdopted|closeCreated|waitQuiet|lastOutputAt|launchKind|hasGate|GATES|pinWhy|ELECTRON|harnessCell' -- skills/ && exit 1 || true
@@ -124,6 +134,10 @@ merely says it is deleted. This delivery deleted
 `skills/delivery/references/harnesses.md`; the command fails if that file
 returns. The identifier grep is the same instrument applied to code: it
 fails on a deletion that removes a definition and leaves a caller.
+
+The identity grep is lexical. The only active legacy-name exception is the
+setup skill's one-time migration text for old managed markers. Historical
+records remain in `docs/decisions.md`.
 
 The disclosure grep is lexical. It catches named consumer identifiers; it does
 not catch a quoted consumer path, a branch name, or a session id. A green result

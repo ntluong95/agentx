@@ -1,8 +1,8 @@
 #!/bin/sh
-# Run dely.js on Node 18+ from PATH.
+# Run agentx.js on Node 18+ from PATH.
 set -u
 DIR=$(CDPATH= cd -- "$(dirname "$0")" && pwd)
-SCRIPT="$DIR/dely.js"
+SCRIPT="$DIR/agentx.js"
 
 run() {
   runtime=$1
@@ -10,8 +10,8 @@ run() {
   exec "$runtime" "$SCRIPT" "$@"
 }
 
-if [ -n "${DELY_NODE-}" ]; then
-  run "$DELY_NODE" "$@"
+if [ -n "${AGENTX_NODE-}" ]; then
+  run "$AGENTX_NODE" "$@"
 fi
 
 if command -v node >/dev/null 2>&1; then

@@ -1,21 +1,27 @@
 {
-  "name": "dely",
-  "version": "0.22.0",
-  "description": "An automation-first, Orca-supervised delivery protocol for coding agents.",
+  "name": "agentx",
+  "version": "0.23.0",
+  "description": "A general multi-agent orchestration plugin for Orca ADE.",
   "license": "MIT",
-  "keywords": ["delivery", "workflow", "review", "orca", "automation"],
+  "keywords": [
+    "delivery",
+    "workflow",
+    "review",
+    "orca",
+    "automation"
+  ],
   "author": {
     "name": "Hieu Phung",
     "url": "https://github.com/hieuphung97"
   },
-  "homepage": "https://github.com/hieuphung97/dely",
-  "repository": "https://github.com/hieuphung97/dely",
   "skills": "./skills/",
   "interface": {
-    "displayName": "Delivery",
-    "shortDescription": "Design, implement, review independently, close",
+    "displayName": "AgentX",
+    "shortDescription": "Orchestrate multi-agent work on Orca ADE",
     "defaultPrompt": [
-      "Use the delivery skill to classify and handle this change, and the setup skill to configure the project."
+      "Use the delivery skill to classify and handle this change, or graph helpers to validate and compile AgentX orchestration DAGs."
     ]
-  }
+  },
+  "homepage": "https://github.com/ntluong95/agentx",
+  "repository": "https://github.com/ntluong95/agentx"
 }

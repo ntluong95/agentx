@@ -1,7 +1,7 @@
 {
-  "name": "dely",
-  "version": "0.22.0",
-  "description": "An automation-first, Orca-supervised delivery protocol for coding agents.",
+  "name": "agentx",
+  "version": "0.23.0",
+  "description": "A general multi-agent orchestration plugin for Orca ADE.",
   "license": "MIT",
   "keywords": ["delivery", "workflow", "review", "orca", "automation"],
   "author": {

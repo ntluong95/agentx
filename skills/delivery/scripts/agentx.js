@@ -6,10 +6,13 @@ const crypto = require("crypto");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const { compileGraph } = require("../lib/graph-compiler");
+const { parseMermaid } = require("../lib/graph-parser");
+const { validateGraph } = require("../lib/graph-validator");
 
-const ACK_S = Number(process.env.DELY_ACK_S || 60);
-const POLL_S = Number(process.env.DELY_POLL_S || 15);
-const PROGRESS_S = Number(process.env.DELY_PROGRESS_S || 60);
+const ACK_S = Number(process.env.AGENTX_ACK_S || 60);
+const POLL_S = Number(process.env.AGENTX_POLL_S || 15);
+const PROGRESS_S = Number(process.env.AGENTX_PROGRESS_S || 60);
 const seconds = (v, d) => (Number.isFinite(+v) && +v > 0 ? +v : d);
 // Measured 2026-09-27 on OMP 18.3.4 / Orca 1.4.212: worker-show
 // projection.provider.model already equalled the pinned selector 1 ms after
@@ -17,14 +20,14 @@ const seconds = (v, d) => (Number.isFinite(+v) && +v > 0 ? +v : d);
 // arrived 7.4 s later. Five seconds is a safety bound, not a wait for lag.
 const PIN_CHECK_DEFAULT_S = 5;
 function pinCheckMs() {
-  const raw = process.env.DELY_PIN_CHECK_S;
+  const raw = process.env.AGENTX_PIN_CHECK_S;
   if (raw == null || raw === "") return PIN_CHECK_DEFAULT_S * 1000;
   const n = Number(raw);
   return Number.isFinite(n) && n >= 0 ? n * 1000 : PIN_CHECK_DEFAULT_S * 1000;
 }
-const PREFLIGHT_S = seconds(process.env.DELY_PREFLIGHT_S, 150);
-const NOTIFY_RETRY_S = seconds(process.env.DELY_NOTIFY_RETRY_S, 30);
-const NOTIFY_GIVEUP_S = seconds(process.env.DELY_NOTIFY_GIVEUP_S, 1800);
+const PREFLIGHT_S = seconds(process.env.AGENTX_PREFLIGHT_S, 150);
+const NOTIFY_RETRY_S = seconds(process.env.AGENTX_NOTIFY_RETRY_S, 30);
+const NOTIFY_GIVEUP_S = seconds(process.env.AGENTX_NOTIFY_GIVEUP_S, 1800);
 
 function orca(args) {
   const bin = process.env.ORCA_CLI_COMMAND || "orca";
@@ -119,7 +122,7 @@ const out = (line, code) => {
 };
 
 let _sha;
-function delySha() {
+function agentxSha() {
   if (_sha !== undefined) return _sha;
   try {
     _sha = String(
@@ -146,17 +149,17 @@ function orcaVersion() {
   return _orcaVer;
 }
 
-// Append one JSON object to ~/.dely/log.jsonl when that directory already
+// Append one JSON object to ~/.agentx/log.jsonl when that directory already
 // exists. Never mkdir. A write failure must not change exit, print, or flow.
 function logEvent(event, extra) {
   extra = extra || {};
   try {
-    if (!fs.statSync(path.join(os.homedir(), ".dely")).isDirectory()) return;
+    if (!fs.statSync(path.join(os.homedir(), ".agentx")).isDirectory()) return;
     const rec = {
       ts: new Date().toISOString(),
       run: extra.run == null ? null : extra.run,
       repo: extra.repo == null ? null : extra.repo,
-      sha: delySha(),
+      sha: agentxSha(),
       orca: orcaVersion(),
       event,
     };
@@ -164,7 +167,7 @@ function logEvent(event, extra) {
       if (k in rec) continue;
       rec[k] = extra[k];
     }
-    fs.appendFileSync(path.join(os.homedir(), ".dely", "log.jsonl"), JSON.stringify(rec) + "\n");
+    fs.appendFileSync(path.join(os.homedir(), ".agentx", "log.jsonl"), JSON.stringify(rec) + "\n");
   } catch (_) {
     /* observer */
   }
@@ -193,7 +196,7 @@ function printIdentity() {
   } catch (_) {
     /* missing */
   }
-  console.log("dely " + version + " sha " + (delySha() || "null") + " sha256 " + skill);
+  console.log("agentx " + version + " sha " + (agentxSha() || "null") + " sha256 " + skill);
 }
 
 function start(repo, run, p, spec, title) {
@@ -209,7 +212,7 @@ function start(repo, run, p, spec, title) {
         "; a pinned Effort requires a pinned Model",
     };
   }
-  if (specModel) spec += "\ndely-pin: " + p.model + (specEffort ? " " + p.effort : "");
+  if (specModel) spec += "\nagentx-pin: " + p.model + (specEffort ? " " + p.effort : "");
   const args = [
     "orchestration",
     "worker-start",
@@ -493,13 +496,13 @@ function selfHarness() {
 }
 
 function wait(f) {
-  if (process.env.DELY_WAITER !== "1") {
+  if (process.env.AGENTX_WAITER !== "1") {
     const self = selfHarness();
     const who = self || f.control;
     const wake = (harnessById(who) || {}).controlWake || "unknown";
     if (wake !== "background") {
       const said = self && self !== f.control ? " (called with --control " + f.control + ")" : "";
-      out("REFUSED " + who + " wakes by " + wake + said + "; use dely wait-bg", 3);
+      out("REFUSED " + who + " wakes by " + wake + said + "; use agentx wait-bg", 3);
     }
   }
   const deadline = Date.now() + Number(f["timeout-min"] || 60) * 60000;
@@ -606,7 +609,7 @@ function wait(f) {
 function waitBg(f) {
   const me = process.env.ORCA_TERMINAL_HANDLE;
   if (!me) fail("not inside an Orca terminal", { run: f.run });
-  const file = path.resolve(f.out || path.join(os.tmpdir(), "dely-wait-" + f.run + ".out"));
+  const file = path.resolve(f.out || path.join(os.tmpdir(), "agentx-wait-" + f.run + ".out"));
   const lock = file + ".lock";
   const recorded = () => {
     try {
@@ -633,7 +636,7 @@ function waitBg(f) {
   } catch (_) {
     if (live(recorded())) {
       logEvent("wait_bg", { run: f.run, which: "ALREADY_WAITING", path: file });
-      out("ALREADY_WAITING: a dely wait is running for this Run; end your turn, it will wake you.", 0);
+      out("ALREADY_WAITING: an AgentX wait is running for this Run; end your turn, it will wake you.", 0);
     }
     writeLock("");
   }
@@ -650,7 +653,7 @@ function waitBg(f) {
     .map((k) => " --" + k + " " + q(f[k]))
     .join("");
   const cmd =
-    "DELY_WAITER=1 " +
+    "AGENTX_WAITER=1 " +
     bin +
     " " +
     self +
@@ -674,7 +677,7 @@ function waitBg(f) {
     " --out " +
     q(file) +
     "; exit";
-  const r = orca(["terminal", "create", "--worktree", "path:" + process.cwd(), "--title", "dely-wait", "--command", cmd]);
+  const r = orca(["terminal", "create", "--worktree", "path:" + process.cwd(), "--title", "agentx-wait", "--command", cmd]);
   if (r.ok === false) {
     try {
       fs.unlinkSync(lock);
@@ -691,7 +694,7 @@ function waitBg(f) {
 function notify(f) {
   const run = (orca(["orchestration", "run-show", "--id", f.run]).result || {}).run || {};
   const to = run.coordinator_handle || f.as;
-  const text = "dely wait finished for " + f.run + ". Finish your current step, then read " + f.out + " and continue.";
+  const text = "AgentX wait finished for " + f.run + ". Finish your current step, then read " + f.out + " and continue.";
   const retryMs = Math.max(1, Math.floor(NOTIFY_RETRY_S * 1000));
   const giveUpMs = NOTIFY_GIVEUP_S * 1000;
   for (const t0 = Date.now(); ; ) {
@@ -726,6 +729,59 @@ function logCmd(f) {
   }
   logEvent("delivery", Object.assign({}, payload, { run: f.run, repo: f.repo || payload.repo || null }));
   process.exit(0);
+}
+
+function findRepositoryRoot() {
+  try {
+    const out = execFileSync("git", ["rev-parse", "--show-toplevel"], {
+      cwd: process.cwd(),
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+    if (!out) throw new Error("empty git root");
+    return fs.realpathSync(out);
+  } catch (_) {
+    throw new Error("--graph must be run from inside a Git repository");
+  }
+}
+
+function assertInsideRepository(repoRoot, candidate) {
+  const rel = path.relative(repoRoot, candidate);
+  if (!rel || rel === ".." || rel.startsWith(".." + path.sep) || path.isAbsolute(rel)) {
+    throw new Error("--graph must be inside the current repository");
+  }
+  return rel;
+}
+
+function readGraph(file) {
+  const repoRoot = findRepositoryRoot();
+  const graphPath = path.resolve(file);
+  const graphReal = fs.realpathSync(graphPath);
+  assertInsideRepository(repoRoot, graphReal);
+  const sourcePath = assertInsideRepository(repoRoot, graphPath).split(path.sep).join("/");
+  const source = fs.readFileSync(graphReal, "utf8");
+  return parseMermaid(source, sourcePath);
+}
+
+function validateGraphCmd(f) {
+  let graph;
+  try {
+    graph = readGraph(f.graph);
+  } catch (e) {
+    out({ ok: false, errors: [e.message || String(e)] }, 1);
+  }
+  const result = validateGraph(graph);
+  out(Object.assign({ graph: f.graph }, result), result.ok ? 0 : 1);
+}
+
+function compileGraphCmd(f) {
+  let compiled;
+  try {
+    compiled = compileGraph(readGraph(f.graph), { profile: f.profile });
+  } catch (e) {
+    out({ ok: false, errors: e.errors || [e.message || String(e)] }, 1);
+  }
+  out({ ok: true, digest: compiled.digest, manifest: compiled.manifest }, 0);
 }
 
 const COMMANDS = {
@@ -765,23 +821,40 @@ const COMMANDS = {
     required: [["run", "RUN"], ["json", "OBJ"]],
     optional: [["repo", "PATH"]],
   },
+  "validate-graph": {
+    required: [["graph", "FILE"]],
+    optional: [],
+  },
+  "compile-graph": {
+    required: [["graph", "FILE"]],
+    optional: [["profile", "NAME"]],
+  },
 };
 
 function usageLine(name) {
   const spec = COMMANDS[name];
   const bits = spec.required.map(([k, v]) => "--" + k + " " + v);
   const opts = spec.optional.map(([k, v]) => "[--" + k + " " + v + "]");
-  return "  dely " + name + " " + bits.concat(opts).join(" ");
+  return "  agentx " + name + " " + bits.concat(opts).join(" ");
 }
 
 function printUsage() {
   console.log("usage:");
   for (const name of Object.keys(COMMANDS)) console.log(usageLine(name));
-  console.log("  dely <subcommand> --help");
+  console.log("  agentx <subcommand> --help");
 }
 
 const [cmd, ...rest] = process.argv.slice(2);
-const table = { preflight, dispatch, wait, "wait-bg": waitBg, notify, log: logCmd };
+const table = {
+  preflight,
+  dispatch,
+  wait,
+  "wait-bg": waitBg,
+  notify,
+  log: logCmd,
+  "validate-graph": validateGraphCmd,
+  "compile-graph": compileGraphCmd,
+};
 if (!cmd) {
   printIdentity();
   printUsage();

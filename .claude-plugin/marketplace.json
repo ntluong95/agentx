@@ -1,14 +1,14 @@
 {
-  "name": "dely",
-  "description": "An automation-first, Orca-supervised delivery protocol for coding agents.",
+  "name": "agentx",
+  "description": "A general multi-agent orchestration plugin for Orca ADE.",
   "owner": {
     "name": "Hieu Phung",
     "url": "https://github.com/hieuphung97"
   },
   "plugins": [
     {
-      "name": "dely",
-      "description": "An automation-first, Orca-supervised delivery protocol for coding agents.",
+      "name": "agentx",
+      "description": "A general multi-agent orchestration plugin for Orca ADE.",
       "source": "./",
       "category": "productivity"
     }

@@ -1,0 +1,10 @@
+flowchart TD
+%%@agentx {"profile":"neutral","maxParallel":2}
+%%@agentx {"fallbackTuples":[{"errorCode":"quota_exhausted","failedStage":"worker-start","effects":"no-write"}]}
+%%@agentx {"node":"research_a","agent":"codex","workspace":"shared-readonly","fallback":["claude"]}
+%%@agentx {"node":"research_b","agent":"claude","workspace":"shared-readonly","fallback":["codex"]}
+%%@agentx {"node":"integrate","agent":"omp","workspace":"orca-worktree","artifacts":[{"path":"reports/integration.md","required":true}]}
+%%@agentx {"node":"review","agent":"codex","workspace":"shared-readonly"}
+research_a["Research A"] --> integrate["Integrate"]
+research_b["Research B"] --> integrate
+integrate --> review["Review"]

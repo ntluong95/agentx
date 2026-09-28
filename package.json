@@ -1,9 +1,9 @@
 {
-  "name": "dely",
-  "version": "0.22.0",
+  "name": "agentx",
+  "version": "0.23.0",
   "private": true,
   "omp": {
-    "extensions": ["./omp/dely-pin.ts"],
+    "extensions": ["./omp/agentx-pin.ts"],
     "skills": ["./skills"]
   }
 }
